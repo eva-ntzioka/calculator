@@ -1,43 +1,121 @@
-//Creates the grid
-function createGrid(size) {
-    //Selects the container where the grid will be placed
-    const container = document.querySelector('.container');
-    
-    //Clears any existing grid
-    container.innerHTML = '';
+// Variables to store the numbers and operator
+let firstNumber = '';
+let secondNumber = '';
+let operator = '';
+let result = null;
+let resetDisplay = false;
 
-    const squareSize = 960 / size;//Calculation of each grids size
+// Get the display element
+const display = document.getElementById('display');
 
-    //Creates the grid squares
-    for (let i = 0; i < size * size; i++) {
-        const div = document.createElement('div'); //Creates a new div for each square
-        div.style.width = `${squareSize}px`; //width
-        div.style.height = `${squareSize}px`; //height
-        div.style.border = '1px solid rgb(8, 64, 64);'; //border
-        div.style.boxSizing = 'border-box';
-        div.style.backgroundColor = 'lightcyan';
+// Add event listeners to all number buttons
+document.querySelectorAll('.num').forEach(button => {
+    button.addEventListener('click', (e) => {
+        handleNumber(e.target.dataset.num);
+    });
+});
 
-        //Adds the hover effect
-        div.addEventListener('mouseenter', () => {
-            div.style.backgroundColor = 'darkcyan';
-        });
+// Add event listeners to all operator buttons
+document.querySelectorAll('.operator').forEach(button => {
+    button.addEventListener('click', (e) => {
+        handleOperator(e.target.dataset.op);
+    });
+});
 
-        container.appendChild(div); //Adds every square to the container
+// Event listener for the equals button
+document.getElementById('equals').addEventListener('click', () => {
+    if (firstNumber && secondNumber && operator) {
+        result = operate(operator, parseFloat(firstNumber), parseFloat(secondNumber));
+        displayResult(result);
+        firstNumber = result;
+        secondNumber = '';
+        operator = '';
+        resetDisplay = true;
     }
-}
+});
 
-//Prompts User Input
-function promptForGridSize() {
-    let input = prompt("Enter the number of squares per side (1-100):");
+// Event listener for the clear button
+document.getElementById('clear').addEventListener('click', clearCalculator);
 
-    let size = Number(input);//Converts input from string to number
+// Function to handle number input
+function handleNumber(num) {
+    if (resetDisplay) {
+        firstNumber = '';
+        resetDisplay = false;
+    }
 
-    if (size >= 1 && size <= 100) {//Valid input
-        createGrid(size);
+    if (!operator) {
+        firstNumber += num;
+        display.textContent = firstNumber;
     } else {
-        alert("Please enter a valid number between 1 and 100.");
+        secondNumber += num;
+        display.textContent = secondNumber;
     }
 }
 
-//Button click event
-document.getElementById('new-grid-button').addEventListener('click', promptForGridSize);
+// Function to handle operator input
+function handleOperator(op) {
+    if (!firstNumber) return;
+    if (secondNumber) {
+        result = operate(operator, parseFloat(firstNumber), parseFloat(secondNumber));
+        displayResult(result);
+        firstNumber = result;
+        secondNumber = '';
+    }
+    operator = op;
+}
+
+// Function to clear the calculator
+function clearCalculator() {
+    firstNumber = '';
+    secondNumber = '';
+    operator = '';
+    result = null;
+    display.textContent = '0';
+}
+
+// Function to display the result
+function displayResult(res) {
+    if (res === 'Error') {
+        display.textContent = res;
+        resetDisplay = true;
+        return;
+    }
+    display.textContent = Math.round((res + Number.EPSILON) * 100) / 100; // Round to 2 decimal places
+}
+
+// Basic math functions
+function add(a, b) {
+    return a + b;
+}
+
+function subtract(a, b) {
+    return a - b;
+}
+
+function multiply(a, b) {
+    return a * b;
+}
+
+function divide(a, b) {
+    if (b === 0) {
+        return 'Error';
+    }
+    return a / b;
+}
+
+// Operate function that takes an operator and two numbers
+function operate(operator, a, b) {
+    switch (operator) {
+        case '+':
+            return add(a, b);
+        case '-':
+            return subtract(a, b);
+        case '*':
+            return multiply(a, b);
+        case '/':
+            return divide(a, b);
+        default:
+            return null;
+    }
+}
